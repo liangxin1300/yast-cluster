@@ -36,6 +36,12 @@ textdomain("openais")
 import copy
 import sys
 
+try:
+    from crmsh import utils as crmutils
+    is_in_cloud = crmutils.detect_cloud() is not None
+except ImportError:
+    is_in_cloud = False
+
 debug = False
 
 #the option table is used to parse and write suggested_value if no options are read
@@ -109,7 +115,7 @@ totem_option_table = {
 	"rrp_problem_count_threshhold":{"doc":"The number of times a problem is detected with a link before setting the link faulty.",
 					"type":"int", "default_value":10},
 	"rrp_token_expired_timeout":{"doc":"This specifies the time in milliseconds to increment the problem counter for the redundant ring protocol after not having received a token from all rings for a particular processor.", "type":"int", "default_value":47},
-	"transport":{"doc":"Transport protocol", "type":"select[udp,udpu]","default_value":"udp"},
+	"transport":{"doc":"Transport protocol", "type":"select[udp,udpu]","default_value":"udpu" if is_in_cloud else "udp"},
 	"ip_version":{"doc":"Specifies version of IP to use for communication. Value can be one of ipv4 or ipv6.", "type":"select[ipv4,ipv6]","default_value":"ipv4"},
 }
 
@@ -708,7 +714,7 @@ class OpenAISConf_Parser(object):
 				elif path[1] == "rrpmode":
 					return '"%s"' % totem_options.get("rrp_mode", "none")
 				elif path[1] == "transport":
-					return '"%s"' % totem_options.get("transport", "udp")
+					return '"%s"' % totem_options.get("transport", "udpu" if is_in_cloud else "udp")
 				elif path[1] == "cluster_name":
 					return '"%s"' % totem_options.get("cluster_name", "hacluster")
 				elif path[1] == "ip_version":
